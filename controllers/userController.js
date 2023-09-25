@@ -42,7 +42,7 @@ const loginController = async (req, res) => {
         .status(200)
         .send({ message: "Invalid Email or Password", success: false });
     }
-    const token = jwt.sign({ id: user.__id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
     res
@@ -57,4 +57,32 @@ const loginController = async (req, res) => {
   }
 };
 
-module.exports = { loginController, signupController };
+// authorization callback
+const authorController = async(req, res) => {
+  try {
+    const user = await userModel.findOne({ _id: req.body.userId });
+    if (!user) {
+      return res.status(200).send({
+        message: "User Not Found",
+        success: false,
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        data: {
+          name: user.name,
+          email: user.email,
+        }
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      message: "Authorization Error",
+      success: false,
+      error,
+    });
+  }
+};
+
+module.exports = { loginController, signupController, authorController };
